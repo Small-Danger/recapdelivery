@@ -169,6 +169,9 @@
         </div>
         
         <!-- Action Buttons -->
+        <button id="restaurantSettlement" class="w-full bg-orange-600 hover:bg-orange-700 text-white text-sm sm:text-base font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 mb-3 sm:mb-4">
+            Règlement Restaurant
+        </button>
         <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-4">
             <button id="endDay" class="bg-red-600 hover:bg-red-700 text-white text-sm sm:text-base font-medium py-2 px-2 sm:px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                 Clôturer la journée
@@ -179,9 +182,6 @@
         </div>
         <button id="showDayDetails" class="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-base font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 mb-3 sm:mb-4">
             Détails de la journée
-        </button>
-        <button id="restaurantSettlement" class="w-full bg-orange-600 hover:bg-orange-700 text-white text-sm sm:text-base font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 mb-3 sm:mb-4">
-            Règlement Restaurant
         </button>
         <button id="clearData" class="w-full bg-gray-600 hover:bg-gray-700 text-white text-sm sm:text-base font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 mb-3 sm:mb-4">
             Vider le cache
@@ -507,9 +507,6 @@
                                     ${delivery.isPaid ? 'Payé' : 'Non payé'}
                                 </span>
                                 <div class="flex gap-2">
-                                    <button onclick="togglePayment(${delivery.id})" class="text-sm px-2 py-1 rounded ${delivery.isPaid ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                                        ${delivery.isPaid ? 'Marquer non payé' : 'Marquer payé'}
-                                    </button>
                                     <button onclick="deleteDelivery(${delivery.id})" class="text-sm px-2 py-1 rounded bg-red-100 text-red-600">
                                         Supprimer
                                     </button>
@@ -531,9 +528,6 @@
                                     ${delivery.isPaid ? 'Payé' : 'Non payé'}
                                 </span>
                                 <div class="flex gap-2">
-                                    <button onclick="togglePayment(${delivery.id})" class="text-sm px-2 py-1 rounded ${delivery.isPaid ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                                        ${delivery.isPaid ? 'Marquer non payé' : 'Marquer payé'}
-                                    </button>
                                     <button onclick="deleteDelivery(${delivery.id})" class="text-sm px-2 py-1 rounded bg-red-100 text-red-600">
                                         Supprimer
                                     </button>
@@ -564,15 +558,6 @@
             
             document.getElementById('deliveryCount').textContent = deliveryCount;
             document.getElementById('totalDeliverySimple').textContent = totalDeliverySimple.toFixed(2) + ' MAD';
-        }
-        
-        function togglePayment(id) {
-            const delivery = deliveries.find(d => d.id === id);
-            if (delivery) {
-                delivery.isPaid = !delivery.isPaid;
-                saveData();
-                updateUI();
-            }
         }
         
         function endDay() {
