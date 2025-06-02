@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Livraisons</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dark {
+            color-scheme: dark;
+        }
+        .dark body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .dark .bg-white {
+            background-color: #2d2d2d;
+        }
+        .dark .text-gray-800 {
+            color: #ffffff;
+        }
+        .dark .text-gray-700 {
+            color: #e0e0e0;
+        }
+        .dark .text-gray-500 {
+            color: #a0a0a0;
+        }
+        .dark .bg-gray-50 {
+            background-color: #3d3d3d;
+        }
+        .dark .border-gray-300 {
+            border-color: #4d4d4d;
+        }
+        .dark .bg-orange-50 {
+            background-color: #3d2d1a;
+        }
+        .dark .text-orange-800 {
+            color: #ffb366;
+        }
+        .dark .bg-gray-100 {
+            background-color: #1a1a1a;
+        }
+        .dark .hover\:bg-gray-200:hover {
+            background-color: #4d4d4d;
+        }
+        .dark .hover\:bg-gray-700:hover {
+            background-color: #4d4d4d;
+        }
+        .dark .bg-gray-200 {
+            background-color: #4d4d4d;
+        }
+        .dark .text-gray-800 {
+            color: #ffffff;
+        }
+        .dark .bg-orange-600 {
+            background-color: #ff8c1a;
+        }
+        .dark .hover\:bg-orange-700:hover {
+            background-color: #e67e00;
+        }
+        .dark .focus\:ring-orange-500:focus {
+            --tw-ring-color: #ff8c1a;
+        }
+        .dark .focus\:border-orange-500:focus {
+            border-color: #ff8c1a;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 transition-colors duration-200">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-center text-gray-800">📦 Gestion Livraisons</h1>
+            <button id="toggleDarkMode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                🌙
+            </button>
+        </div>
+        
+        <!-- Mode Selection -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Mode de livraison</label>
+            <div class="flex rounded-md shadow-sm">
+                <button id="restaurantMode" class="flex-1 py-2 px-4 rounded-l-md font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-600 text-white">
+                    Restaurant
+                </button>
+                <button id="simpleMode" class="flex-1 py-2 px-4 rounded-r-md font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-200 text-gray-800">
+                    Simple
+                </button>
+            </div>
+        </div>
+        
+        <!-- Restaurant Mode Form -->
+        <div id="restaurantForm" class="fade-in">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="foodAmount" class="block text-sm font-medium text-gray-700 mb-1">Montant nourriture (MAD)</label>
+                    <input type="number" id="foodAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                </div>
+                <div>
+                    <label for="deliveryAmountResto" class="block text-sm font-medium text-gray-700 mb-1">Montant livraison (MAD)</label>
+                    <input type="number" id="deliveryAmountResto" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                </div>
+            </div>
+            <button id="addRestaurantDelivery" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-6">
+                Ajouter la livraison
+            </button>
+        </div>
+        
+        <!-- Simple Mode Form -->
+        <div id="simpleForm" class="hidden fade-in">
+            <div class="mb-4">
+                <label for="deliveryAmountSimple" class="block text-sm font-medium text-gray-700 mb-1">Montant livraison (MAD)</label>
+                <input type="number" id="deliveryAmountSimple" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+            </div>
+            <button id="addSimpleDelivery" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-6">
+                Ajouter la livraison
+            </button>
+        </div>
+        
+        <!-- Deliveries List -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-2">Livraisons du jour</h2>
+            <div id="deliveriesList" class="space-y-2 max-h-60 overflow-y-auto">
+                <p class="text-gray-500 text-center py-4">Aucune livraison enregistrée</p>
+            </div>
+        </div>
+        
+        <!-- Summary -->
+        <div id="restaurantSummary" class="bg-orange-50 p-4 rounded-lg mb-6">
+            <h3 class="font-semibold text-orange-800 mb-2">Bilan Restaurant</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <p class="text-sm">Total nourriture:</p>
+                <p id="totalFood" class="text-sm font-medium">0.00 MAD</p>
+                <p class="text-sm">Total livraison:</p>
+                <p id="totalDeliveryResto" class="text-sm font-medium">0.00 MAD</p>
+                <p class="text-sm font-semibold">Total:</p>
+                <p id="totalResto" class="text-sm font-semibold">0.00 MAD</p>
+            </div>
+        </div>
+        
+        <div id="simpleSummary" class="hidden bg-orange-50 p-4 rounded-lg mb-6">
+            <h3 class="font-semibold text-orange-800 mb-2">Bilan Simple</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <p class="text-sm">Nombre de livraisons:</p>
+                <p id="deliveryCount" class="text-sm font-medium">0</p>
+                <p class="text-sm">Total gains:</p>
+                <p id="totalDeliverySimple" class="text-sm font-medium">0.00 MAD</p>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <button id="endDay" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                Clôturer la journée
+            </button>
+            <button id="showHistory" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Historique
+            </button>
+        </div>
+        <button id="showDayDetails" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4">
+            Détails de la journée
+        </button>
+        <button id="restaurantSettlement" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4">
+            Règlement Restaurant
+        </button>
+        <button id="clearData" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 mb-4">
+            Vider le cache
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div id="summaryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 fade-in">
+            <h3 id="modalTitle" class="text-xl font-bold mb-4">Résumé de la journée</h3>
+            <div id="modalContent"></div>
+            <button id="closeModal" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <!-- Restaurant Settlement Modal -->
+    <div id="restaurantSettlementModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 fade-in">
+            <h3 class="text-xl font-bold mb-4">Règlement Restaurant</h3>
+            <div id="restaurantSettlementContent"></div>
+            <div class="mt-4">
+                <button id="confirmRestaurantSettlement" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-2">
+                    Confirmer le règlement
+                </button>
+                <button id="closeRestaurantSettlementModal" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 fade-in">
+            <h3 class="text-xl font-bold mb-4">Historique des journées</h3>
+            <div id="historyContent" class="max-h-[60vh] overflow-y-auto"></div>
+            <button id="closeHistoryModal" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <!-- Day Details Modal -->
+    <div id="dayDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 fade-in">
+            <h3 class="text-xl font-bold mb-4">Détails de la journée</h3>
+            <div id="dayDetailsContent" class="max-h-[70vh] overflow-y-auto">
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-2">Livraisons</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heure</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nourriture</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Livraison</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dayDetailsTableBody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="dayDetailsSettlements" class="mb-6">
+                    <!-- Les règlements seront ajoutés ici -->
+                </div>
+                <div id="dayDetailsSummary" class="bg-gray-50 p-4 rounded-lg">
+                    <!-- Le résumé sera ajouté ici -->
+                </div>
+            </div>
+            <button id="closeDayDetailsModal" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentMode = 'restaurant';
+        let deliveries = [];
+        let history = [];
+        let restaurantSettlements = [];
+        
+        // Load data from localStorage
+        function loadData() {
+            try {
+                const savedDeliveries = localStorage.getItem('deliveries');
+                const savedHistory = localStorage.getItem('history');
+                const savedMode = localStorage.getItem('currentMode');
+                const savedSettlements = localStorage.getItem('restaurantSettlements');
+                
+                if (savedDeliveries) deliveries = JSON.parse(savedDeliveries);
+                if (savedHistory) history = JSON.parse(savedHistory);
+                if (savedMode) currentMode = savedMode;
+                if (savedSettlements) restaurantSettlements = JSON.parse(savedSettlements);
+                
+                // Convertir les dates string en objets Date
+                deliveries.forEach(delivery => {
+                    delivery.timestamp = new Date(delivery.timestamp);
+                });
+                
+                history.forEach(day => {
+                    day.date = new Date(day.date);
+                    day.deliveries.forEach(delivery => {
+                        delivery.timestamp = new Date(delivery.timestamp);
+                    });
+                });
+
+                restaurantSettlements.forEach(settlement => {
+                    settlement.timestamp = new Date(settlement.timestamp);
+                });
+                
+                updateUI();
+            } catch (error) {
+                console.error('Erreur lors du chargement des données:', error);
+                deliveries = [];
+                history = [];
+                restaurantSettlements = [];
+            }
+        }
+        
+        // Save data to localStorage
+        function saveData() {
+            try {
+                localStorage.setItem('deliveries', JSON.stringify(deliveries));
+                localStorage.setItem('history', JSON.stringify(history));
+                localStorage.setItem('currentMode', currentMode);
+                localStorage.setItem('restaurantSettlements', JSON.stringify(restaurantSettlements));
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde des données:', error);
+            }
+        }
+        
+        // DOM Elements
+        const restaurantModeBtn = document.getElementById('restaurantMode');
+        const simpleModeBtn = document.getElementById('simpleMode');
+        const restaurantForm = document.getElementById('restaurantForm');
+        const simpleForm = document.getElementById('simpleForm');
+        const restaurantSummary = document.getElementById('restaurantSummary');
+        const simpleSummary = document.getElementById('simpleSummary');
+        const deliveriesList = document.getElementById('deliveriesList');
+        const addRestaurantDeliveryBtn = document.getElementById('addRestaurantDelivery');
+        const addSimpleDeliveryBtn = document.getElementById('addSimpleDelivery');
+        const endDayBtn = document.getElementById('endDay');
+        const summaryModal = document.getElementById('summaryModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const closeModalBtn = document.getElementById('closeModal');
+        const showHistoryBtn = document.getElementById('showHistory');
+        const historyModal = document.getElementById('historyModal');
+        const historyContent = document.getElementById('historyContent');
+        const closeHistoryModalBtn = document.getElementById('closeHistoryModal');
+        const clearDataBtn = document.getElementById('clearData');
+        const toggleDarkModeBtn = document.getElementById('toggleDarkMode');
+        const restaurantSettlementBtn = document.getElementById('restaurantSettlement');
+        const restaurantSettlementModal = document.getElementById('restaurantSettlementModal');
+        const restaurantSettlementContent = document.getElementById('restaurantSettlementContent');
+        const confirmRestaurantSettlementBtn = document.getElementById('confirmRestaurantSettlement');
+        const closeRestaurantSettlementModalBtn = document.getElementById('closeRestaurantSettlementModal');
+        const showDayDetailsBtn = document.getElementById('showDayDetails');
+        const dayDetailsModal = document.getElementById('dayDetailsModal');
+        const dayDetailsTableBody = document.getElementById('dayDetailsTableBody');
+        const dayDetailsSettlements = document.getElementById('dayDetailsSettlements');
+        const dayDetailsSummary = document.getElementById('dayDetailsSummary');
+        const closeDayDetailsModalBtn = document.getElementById('closeDayDetailsModal');
+        
+        // Initialize
+        loadData();
+        
+        // Event Listeners
+        restaurantModeBtn.addEventListener('click', () => switchMode('restaurant'));
+        simpleModeBtn.addEventListener('click', () => switchMode('simple'));
+        addRestaurantDeliveryBtn.addEventListener('click', addRestaurantDelivery);
+        addSimpleDeliveryBtn.addEventListener('click', addSimpleDelivery);
+        endDayBtn.addEventListener('click', endDay);
+        closeModalBtn.addEventListener('click', () => summaryModal.classList.add('hidden'));
+        showHistoryBtn.addEventListener('click', showHistory);
+        closeHistoryModalBtn.addEventListener('click', () => historyModal.classList.add('hidden'));
+        clearDataBtn.addEventListener('click', clearData);
+        toggleDarkModeBtn.addEventListener('click', toggleDarkMode);
+        restaurantSettlementBtn.addEventListener('click', showRestaurantSettlement);
+        closeRestaurantSettlementModalBtn.addEventListener('click', () => restaurantSettlementModal.classList.add('hidden'));
+        confirmRestaurantSettlementBtn.addEventListener('click', confirmRestaurantSettlement);
+        showDayDetailsBtn.addEventListener('click', showDayDetails);
+        closeDayDetailsModalBtn.addEventListener('click', () => dayDetailsModal.classList.add('hidden'));
+        
+        // Functions
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDark);
+            toggleDarkModeBtn.textContent = isDark ? '☀️' : '🌙';
+            
+            // Mettre à jour les couleurs des boutons de mode
+            if (currentMode === 'restaurant') {
+                restaurantModeBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                restaurantModeBtn.classList.add('bg-orange-600', 'text-white');
+                simpleModeBtn.classList.remove('bg-orange-600', 'text-white');
+                simpleModeBtn.classList.add('bg-gray-200', 'text-gray-800');
+            } else {
+                simpleModeBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                simpleModeBtn.classList.add('bg-orange-600', 'text-white');
+                restaurantModeBtn.classList.remove('bg-orange-600', 'text-white');
+                restaurantModeBtn.classList.add('bg-gray-200', 'text-gray-800');
+            }
+        }
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            saveData();
+            updateUI();
+            
+            if (mode === 'restaurant') {
+                restaurantModeBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                restaurantModeBtn.classList.add('bg-orange-600', 'text-white');
+                simpleModeBtn.classList.remove('bg-orange-600', 'text-white');
+                simpleModeBtn.classList.add('bg-gray-200', 'text-gray-800');
+            } else {
+                simpleModeBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                simpleModeBtn.classList.add('bg-orange-600', 'text-white');
+                restaurantModeBtn.classList.remove('bg-orange-600', 'text-white');
+                restaurantModeBtn.classList.add('bg-gray-200', 'text-gray-800');
+            }
+        }
+        
+        function addRestaurantDelivery() {
+            const foodAmount = parseFloat(document.getElementById('foodAmount').value) || 0;
+            const deliveryAmount = parseFloat(document.getElementById('deliveryAmountResto').value) || 0;
+            
+            if (foodAmount <= 0 && deliveryAmount <= 0) {
+                alert('Veuillez entrer des montants valides');
+                return;
+            }
+            
+            const delivery = {
+                id: Date.now(),
+                type: 'restaurant',
+                foodAmount,
+                deliveryAmount,
+                timestamp: new Date(),
+                isPaid: false
+            };
+            
+            deliveries.push(delivery);
+            saveData();
+            updateUI();
+            
+            document.getElementById('foodAmount').value = '';
+            document.getElementById('deliveryAmountResto').value = '';
+        }
+        
+        function addSimpleDelivery() {
+            const deliveryAmount = parseFloat(document.getElementById('deliveryAmountSimple').value) || 0;
+            
+            if (deliveryAmount <= 0) {
+                alert('Veuillez entrer un montant valide');
+                return;
+            }
+            
+            const delivery = {
+                id: Date.now(),
+                type: 'simple',
+                deliveryAmount,
+                timestamp: new Date(),
+                isPaid: false
+            };
+            
+            deliveries.push(delivery);
+            saveData();
+            updateUI();
+            
+            document.getElementById('deliveryAmountSimple').value = '';
+        }
+        
+        function deleteDelivery(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette livraison ?')) {
+                deliveries = deliveries.filter(d => d.id !== id);
+                saveData();
+                updateUI();
+            }
+        }
+        
+        function updateUI() {
+            if (currentMode === 'restaurant') {
+                restaurantForm.classList.remove('hidden');
+                simpleForm.classList.add('hidden');
+                restaurantSummary.classList.remove('hidden');
+                simpleSummary.classList.add('hidden');
+            } else {
+                restaurantForm.classList.add('hidden');
+                simpleForm.classList.remove('hidden');
+                restaurantSummary.classList.add('hidden');
+                simpleSummary.classList.remove('hidden');
+            }
+            
+            if (deliveries.length === 0) {
+                deliveriesList.innerHTML = '<p class="text-gray-500 text-center py-4">Aucune livraison enregistrée</p>';
+            } else {
+                deliveriesList.innerHTML = '';
+                deliveries.forEach(delivery => {
+                    const deliveryElement = document.createElement('div');
+                    deliveryElement.className = 'bg-gray-50 p-3 rounded-md';
+                    
+                    if (delivery.type === 'restaurant') {
+                        deliveryElement.innerHTML = `
+                            <div class="flex justify-between">
+                                <span class="font-medium">Restaurant</span>
+                                <span class="text-sm text-gray-500">${delivery.timestamp.toLocaleTimeString()}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1 mt-1 text-sm">
+                                <span>Nourriture:</span>
+                                <span class="text-right">${delivery.foodAmount.toFixed(2)} MAD</span>
+                                <span>Livraison:</span>
+                                <span class="text-right">${delivery.deliveryAmount.toFixed(2)} MAD</span>
+                            </div>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="text-sm ${delivery.isPaid ? 'text-green-600' : 'text-red-600'}">
+                                    ${delivery.isPaid ? 'Payé' : 'Non payé'}
+                                </span>
+                                <div class="flex gap-2">
+                                    <button onclick="togglePayment(${delivery.id})" class="text-sm px-2 py-1 rounded ${delivery.isPaid ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                                        ${delivery.isPaid ? 'Marquer non payé' : 'Marquer payé'}
+                                    </button>
+                                    <button onclick="deleteDelivery(${delivery.id})" class="text-sm px-2 py-1 rounded bg-red-100 text-red-600">
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        deliveryElement.innerHTML = `
+                            <div class="flex justify-between">
+                                <span class="font-medium">Simple</span>
+                                <span class="text-sm text-gray-500">${delivery.timestamp.toLocaleTimeString()}</span>
+                            </div>
+                            <div class="mt-1 text-sm">
+                                <span>Montant: </span>
+                                <span class="font-medium">${delivery.deliveryAmount.toFixed(2)} MAD</span>
+                            </div>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="text-sm ${delivery.isPaid ? 'text-green-600' : 'text-red-600'}">
+                                    ${delivery.isPaid ? 'Payé' : 'Non payé'}
+                                </span>
+                                <div class="flex gap-2">
+                                    <button onclick="togglePayment(${delivery.id})" class="text-sm px-2 py-1 rounded ${delivery.isPaid ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                                        ${delivery.isPaid ? 'Marquer non payé' : 'Marquer payé'}
+                                    </button>
+                                    <button onclick="deleteDelivery(${delivery.id})" class="text-sm px-2 py-1 rounded bg-red-100 text-red-600">
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    deliveriesList.appendChild(deliveryElement);
+                });
+            }
+            
+            updateSummaries();
+        }
+        
+        function updateSummaries() {
+            const restaurantDeliveries = deliveries.filter(d => d.type === 'restaurant');
+            const totalFood = restaurantDeliveries.reduce((sum, d) => sum + d.foodAmount, 0);
+            const totalDeliveryResto = restaurantDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+            
+            document.getElementById('totalFood').textContent = totalFood.toFixed(2) + ' MAD';
+            document.getElementById('totalDeliveryResto').textContent = totalDeliveryResto.toFixed(2) + ' MAD';
+            document.getElementById('totalResto').textContent = (totalFood + totalDeliveryResto).toFixed(2) + ' MAD';
+            
+            const simpleDeliveries = deliveries.filter(d => d.type === 'simple');
+            const deliveryCount = simpleDeliveries.length;
+            const totalDeliverySimple = simpleDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+            
+            document.getElementById('deliveryCount').textContent = deliveryCount;
+            document.getElementById('totalDeliverySimple').textContent = totalDeliverySimple.toFixed(2) + ' MAD';
+        }
+        
+        function togglePayment(id) {
+            const delivery = deliveries.find(d => d.id === id);
+            if (delivery) {
+                delivery.isPaid = !delivery.isPaid;
+                saveData();
+                updateUI();
+            }
+        }
+        
+        function endDay() {
+            if (deliveries.length === 0) {
+                alert('Aucune livraison enregistrée aujourd\'hui');
+                return;
+            }
+            
+            const unpaidDeliveries = deliveries.filter(d => !d.isPaid);
+            if (unpaidDeliveries.length > 0) {
+                alert(`Il reste ${unpaidDeliveries.length} livraison(s) non payée(s). Veuillez les régler avant de clôturer la journée.`);
+                return;
+            }
+            
+            const daySummary = {
+                date: new Date(),
+                deliveries: [...deliveries],
+                mode: currentMode
+            };
+            
+            history.push(daySummary);
+            saveData();
+            
+            modalTitle.textContent = 'Résumé de la journée';
+            
+            if (currentMode === 'restaurant') {
+                const restaurantDeliveries = deliveries.filter(d => d.type === 'restaurant');
+                const totalFood = restaurantDeliveries.reduce((sum, d) => sum + d.foodAmount, 0);
+                const totalDelivery = restaurantDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+                
+                modalContent.innerHTML = `
+                    <div class="space-y-2">
+                        <p class="font-semibold">Mode Restaurant</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <p>Livraisons:</p>
+                            <p class="text-right">${restaurantDeliveries.length}</p>
+                            <p>Total nourriture:</p>
+                            <p class="text-right">${totalFood.toFixed(2)} MAD</p>
+                            <p>Total livraison:</p>
+                            <p class="text-right">${totalDelivery.toFixed(2)} MAD</p>
+                            <p class="font-semibold">Total:</p>
+                            <p class="font-semibold text-right">${(totalFood + totalDelivery).toFixed(2)} MAD</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const simpleDeliveries = deliveries.filter(d => d.type === 'simple');
+                const totalDelivery = simpleDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+                
+                modalContent.innerHTML = `
+                    <div class="space-y-2">
+                        <p class="font-semibold">Mode Simple</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <p>Livraisons:</p>
+                            <p class="text-right">${simpleDeliveries.length}</p>
+                            <p>Total gains:</p>
+                            <p class="text-right font-semibold">${totalDelivery.toFixed(2)} MAD</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            summaryModal.classList.remove('hidden');
+            
+            deliveries = [];
+            saveData();
+            updateUI();
+        }
+        
+        function showRestaurantSettlement() {
+            const restaurantDeliveries = deliveries.filter(d => d.type === 'restaurant' && !d.isPaid);
+            if (restaurantDeliveries.length === 0) {
+                alert('Aucune livraison restaurant non payée à régler');
+                return;
+            }
+
+            const totalFood = restaurantDeliveries.reduce((sum, d) => sum + d.foodAmount, 0);
+            const totalDelivery = restaurantDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+
+            restaurantSettlementContent.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <p>Nombre de livraisons:</p>
+                        <p class="text-right">${restaurantDeliveries.length}</p>
+                        <p>Total nourriture:</p>
+                        <p class="text-right">${totalFood.toFixed(2)} MAD</p>
+                        <p>Total livraison:</p>
+                        <p class="text-right">${totalDelivery.toFixed(2)} MAD</p>
+                        <p class="font-semibold">À verser au restaurant:</p>
+                        <p class="font-semibold text-right">${totalFood.toFixed(2)} MAD</p>
+                        <p class="font-semibold">Vos gains:</p>
+                        <p class="font-semibold text-right">${totalDelivery.toFixed(2)} MAD</p>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <p>Cette action va :</p>
+                        <ul class="list-disc list-inside mt-2">
+                            <li>Marquer les livraisons comme payées</li>
+                            <li>Enregistrer ce règlement dans l'historique</li>
+                            <li>Vous permettre de continuer à travailler</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            restaurantSettlementModal.classList.remove('hidden');
+        }
+
+        function confirmRestaurantSettlement() {
+            const restaurantDeliveries = deliveries.filter(d => d.type === 'restaurant' && !d.isPaid);
+            const totalFood = restaurantDeliveries.reduce((sum, d) => sum + d.foodAmount, 0);
+            const totalDelivery = restaurantDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+
+            // Marquer les livraisons comme payées
+            restaurantDeliveries.forEach(delivery => {
+                delivery.isPaid = true;
+            });
+
+            // Enregistrer le règlement
+            const settlement = {
+                timestamp: new Date(),
+                deliveries: [...restaurantDeliveries],
+                totalFood,
+                totalDelivery
+            };
+            restaurantSettlements.push(settlement);
+
+            saveData();
+            updateUI();
+            restaurantSettlementModal.classList.add('hidden');
+
+            alert(`Règlement effectué :\nÀ verser au restaurant : ${totalFood.toFixed(2)} MAD\nVos gains : ${totalDelivery.toFixed(2)} MAD`);
+        }
+        
+        function showHistory() {
+            if (history.length === 0 && restaurantSettlements.length === 0) {
+                alert('Aucun historique disponible');
+                return;
+            }
+            
+            historyContent.innerHTML = '';
+            
+            // Afficher les règlements restaurant
+            if (restaurantSettlements.length > 0) {
+                const settlementsTitle = document.createElement('h3');
+                settlementsTitle.className = 'text-lg font-bold mb-4 mt-6';
+                settlementsTitle.textContent = 'Règlements Restaurant';
+                historyContent.appendChild(settlementsTitle);
+
+                restaurantSettlements.reverse().forEach(settlement => {
+                    const settlementElement = document.createElement('div');
+                    settlementElement.className = 'mb-6 p-4 bg-orange-50 rounded-lg';
+                    
+                    const date = new Date(settlement.timestamp);
+                    const formattedDate = date.toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    settlementElement.innerHTML = `
+                        <h4 class="font-semibold mb-2">${formattedDate}</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <p>Livraisons:</p>
+                            <p class="text-right">${settlement.deliveries.length}</p>
+                            <p>Total nourriture:</p>
+                            <p class="text-right">${settlement.totalFood.toFixed(2)} MAD</p>
+                            <p>Total livraison:</p>
+                            <p class="text-right">${settlement.totalDelivery.toFixed(2)} MAD</p>
+                        </div>
+                    `;
+                    
+                    historyContent.appendChild(settlementElement);
+                });
+            }
+            
+            // Afficher les clôtures de journée
+            if (history.length > 0) {
+                const historyTitle = document.createElement('h3');
+                historyTitle.className = 'text-lg font-bold mb-4 mt-6';
+                historyTitle.textContent = 'Clôtures de journée';
+                historyContent.appendChild(historyTitle);
+
+                history.reverse().forEach((day, index) => {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'mb-6 p-4 bg-gray-50 rounded-lg';
+                    
+                    const date = new Date(day.date);
+                    const formattedDate = date.toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    let content = '';
+                    if (day.mode === 'restaurant') {
+                        const restaurantDeliveries = day.deliveries.filter(d => d.type === 'restaurant');
+                        const totalFood = restaurantDeliveries.reduce((sum, d) => sum + d.foodAmount, 0);
+                        const totalDelivery = restaurantDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+                        
+                        content = `
+                            <h4 class="font-semibold mb-2">${formattedDate} - Mode Restaurant</h4>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <p>Livraisons:</p>
+                                <p class="text-right">${restaurantDeliveries.length}</p>
+                                <p>Total nourriture:</p>
+                                <p class="text-right">${totalFood.toFixed(2)} MAD</p>
+                                <p>Total livraison:</p>
+                                <p class="text-right">${totalDelivery.toFixed(2)} MAD</p>
+                                <p class="font-semibold">Total:</p>
+                                <p class="font-semibold text-right">${(totalFood + totalDelivery).toFixed(2)} MAD</p>
+                            </div>
+                        `;
+                    } else {
+                        const simpleDeliveries = day.deliveries.filter(d => d.type === 'simple');
+                        const totalDelivery = simpleDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+                        
+                        content = `
+                            <h4 class="font-semibold mb-2">${formattedDate} - Mode Simple</h4>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <p>Livraisons:</p>
+                                <p class="text-right">${simpleDeliveries.length}</p>
+                                <p>Total gains:</p>
+                                <p class="text-right font-semibold">${totalDelivery.toFixed(2)} MAD</p>
+                            </div>
+                        `;
+                    }
+                    
+                    dayElement.innerHTML = content;
+                    historyContent.appendChild(dayElement);
+                });
+            }
+            
+            historyModal.classList.remove('hidden');
+        }
+        
+        function clearData() {
+            if (confirm('Êtes-vous sûr de vouloir vider le cache ? Toutes les données seront supprimées.')) {
+                localStorage.clear();
+                deliveries = [];
+                history = [];
+                restaurantSettlements = [];
+                updateUI();
+            }
+        }
+        
+        function showDayDetails() {
+            // Trier les livraisons par heure
+            const sortedDeliveries = [...deliveries].sort((a, b) => a.timestamp - b.timestamp);
+            
+            // Vider le tableau
+            dayDetailsTableBody.innerHTML = '';
+            
+            // Ajouter les livraisons au tableau
+            sortedDeliveries.forEach(delivery => {
+                const row = document.createElement('tr');
+                const total = delivery.type === 'restaurant' 
+                    ? delivery.foodAmount + delivery.deliveryAmount 
+                    : delivery.deliveryAmount;
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${delivery.timestamp.toLocaleTimeString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${delivery.type === 'restaurant' ? 'Restaurant' : 'Simple'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${delivery.type === 'restaurant' ? delivery.foodAmount.toFixed(2) + ' MAD' : '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${delivery.deliveryAmount.toFixed(2)} MAD
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${total.toFixed(2)} MAD
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${delivery.isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${delivery.isPaid ? 'Payé' : 'Non payé'}
+                        </span>
+                    </td>
+                `;
+                
+                dayDetailsTableBody.appendChild(row);
+            });
+
+            // Afficher les règlements restaurant
+            const todaySettlements = restaurantSettlements.filter(settlement => {
+                const settlementDate = new Date(settlement.timestamp);
+                const today = new Date();
+                return settlementDate.toDateString() === today.toDateString();
+            });
+
+            if (todaySettlements.length > 0) {
+                dayDetailsSettlements.innerHTML = `
+                    <h4 class="font-semibold mb-2">Règlements Restaurant</h4>
+                    <div class="space-y-4">
+                        ${todaySettlements.map(settlement => `
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium">Règlement à ${new Date(settlement.timestamp).toLocaleTimeString()}</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <p>Nombre de livraisons:</p>
+                                    <p class="text-right">${settlement.deliveries.length}</p>
+                                    <p>Total nourriture:</p>
+                                    <p class="text-right">${settlement.totalFood.toFixed(2)} MAD</p>
+                                    <p>Total livraison:</p>
+                                    <p class="text-right">${settlement.totalDelivery.toFixed(2)} MAD</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                dayDetailsSettlements.innerHTML = '';
+            }
+
+            // Calculer et afficher le résumé
+            const restaurantDeliveries = deliveries.filter(d => d.type === 'restaurant');
+            const simpleDeliveries = deliveries.filter(d => d.type === 'simple');
+            
+            const totalFood = restaurantDeliveries.reduce((sum, d) => sum + d.foodAmount, 0);
+            const totalDeliveryResto = restaurantDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+            const totalDeliverySimple = simpleDeliveries.reduce((sum, d) => sum + d.deliveryAmount, 0);
+            
+            const totalGains = totalDeliveryResto + totalDeliverySimple;
+            const totalVersements = todaySettlements.reduce((sum, s) => sum + s.totalFood, 0);
+            const gainsRestants = totalGains - todaySettlements.reduce((sum, s) => sum + s.totalDelivery, 0);
+
+            dayDetailsSummary.innerHTML = `
+                <h4 class="font-semibold mb-4">Résumé de la journée</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <h5 class="font-medium mb-2">Livraisons</h5>
+                        <div class="space-y-1 text-sm">
+                            <p>Restaurant: ${restaurantDeliveries.length} livraisons</p>
+                            <p>Simple: ${simpleDeliveries.length} livraisons</p>
+                            <p class="font-medium">Total: ${deliveries.length} livraisons</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="font-medium mb-2">Montants</h5>
+                        <div class="space-y-1 text-sm">
+                            <p>Total nourriture: ${totalFood.toFixed(2)} MAD</p>
+                            <p>Total livraison: ${totalDeliveryResto.toFixed(2)} MAD</p>
+                            <p>Total simple: ${totalDeliverySimple.toFixed(2)} MAD</p>
+                            <p class="font-medium">Total gains: ${totalGains.toFixed(2)} MAD</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="font-medium mb-2">Règlements</h5>
+                        <div class="space-y-1 text-sm">
+                            <p>Versements restaurant: ${totalVersements.toFixed(2)} MAD</p>
+                            <p>Gains déjà perçus: ${(totalGains - gainsRestants).toFixed(2)} MAD</p>
+                            <p class="font-medium">Gains restants: ${gainsRestants.toFixed(2)} MAD</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            dayDetailsModal.classList.remove('hidden');
+        }
+        
+        // Initialize dark mode
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+            toggleDarkModeBtn.textContent = '☀️';
+        }
+    </script>
+</body>
+</html>
